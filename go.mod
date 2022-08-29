@@ -6,7 +6,6 @@ require (
 	github.com/deepch/vdk v0.0.19
 	github.com/gin-gonic/autotls v0.0.5
 	github.com/gin-gonic/gin v1.8.2
-	github.com/gobwas/ws v1.1.0
 	github.com/hashicorp/go-version v1.6.0
 	github.com/imdario/mergo v0.3.13
 	github.com/liip/sheriff v0.11.1
@@ -18,8 +17,6 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.1 // indirect
-	github.com/gobwas/httphead v0.1.0 // indirect
-	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
