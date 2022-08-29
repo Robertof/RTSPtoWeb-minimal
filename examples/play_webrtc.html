@@ -1,35 +1,30 @@
-{{template "head.tmpl" .}}
-<div class="content-header">
-  <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col-sm-6">
-        <h1 class="m-0 text-dark">Play webrtc video</h1>
-      </div>
-      <div class="col-sm-6">
-        <ol class="breadcrumb float-sm-right">
-          <li class="breadcrumb-item"><a href="/">Home</a></li>
-          <li class="breadcrumb-item active">Play webrtc video</li>
-        </ol>
-      </div>
-    </div>
-  </div><!-- /.container-fluid -->
-</div>
+<!doctype html>
+<head><title>WebRTC test</title></head>
+<body>
 <div class="content">
-  {{template "player.tmpl" .}}
-
-  {{template "foot.tmpl" .}}
+  <video id="videoPlayer" autoplay controls muted playsinline></video>
 </div>
 <script>
+  const query = new URLSearchParams(document.location.search);
+
+  if (!query.has('uuid') || !query.has('channel')) {
+    alert('Please configure this page with the correct UUID and channel using ?uuid=<uuid>&channel=<ch>');
+    throw 'invalid params';
+  }
+
+  const uuid = query.get('uuid');
+  const channel = query.get('channel');
+  const baseURL = query.get('base_url') || '';
+
   let webrtc, webrtcSendChannel;
   let mediaStream;
 
-  $(document).ready(() => {
-    startPlay();
-  });
+  document.addEventListener('DOMContentLoaded', () => startPlay());
 
   async function startPlay() {
     mediaStream = new MediaStream();
-    $("#videoPlayer")[0].srcObject =  mediaStream;
+    document.querySelector('video').srcObject = mediaStream;
+
     webrtc = new RTCPeerConnection({
       iceServers: [{
         urls: ["stun:stun.l.google.com:19302"]
@@ -41,11 +36,11 @@
 
     webrtc.ontrack = ontrack
     let offer = await webrtc.createOffer({
-            //iceRestart:true,
-            offerToReceiveAudio:true,
-            offerToReceiveVideo:true
-        });
-        await webrtc.setLocalDescription(offer);
+      //iceRestart:true,
+      offerToReceiveAudio:true,
+      offerToReceiveVideo:true
+    });
+    await webrtc.setLocalDescription(offer);
   }
 
   function ontrack (event){
@@ -56,12 +51,13 @@
   async function signalingstatechange (){
         switch (webrtc.signalingState){
             case 'have-local-offer':
-            let uuid = $('#uuid').val();
-            let channel = $('#channel').val();
-            let url = "/stream/" + uuid + "/channel/" + channel + "/webrtc?uuid=" + uuid + '&channel=' + channel;
-            $.post(url, {
-              data: btoa(webrtc.localDescription.sdp)
-            }, function(data) {
+            let url = baseURL + "/stream/" + uuid + "/channel/" + channel + "/webrtc?uuid=" + uuid + '&channel=' + channel;
+            const data = new FormData();
+            data.set('data', btoa(webrtc.localDescription.sdp));
+            fetch(url, {
+              method: 'POST',
+              body: data
+            }).then(x => x.text()).then(data => {
               try {
                 console.log(data);
                 webrtc.setRemoteDescription(new RTCSessionDescription({
@@ -95,15 +91,17 @@
     }
 
   async function handleNegotiationNeeded() {
-    let uuid = $('#uuid').val();
-    let channel = $('#channel').val();
-    let url = "/stream/" + uuid + "/channel/" + channel + "/webrtc?uuid=" + uuid + '&channel=' + channel;
+    let url = baseURL + "/stream/" + uuid + "/channel/" + channel + "/webrtc?uuid=" + uuid + '&channel=' + channel;
     let offer = await webrtc.createOffer();
 
+    const data = new FormData();
+    data.set('data', btoa(webrtc.localDescription.sdp));
+
     await webrtc.setLocalDescription(offer);
-    $.post(url, {
-      data: btoa(webrtc.localDescription.sdp)
-    }, function(data) {
+      fetch(url, {
+        method: 'POST',
+        body: data
+      }).then(x => x.text()).then(data => {
       try {
         console.log(data);
         webrtc.setRemoteDescription(new RTCSessionDescription({
@@ -117,12 +115,12 @@
     });
   }
 
-  $("#videoPlayer")[0].addEventListener('loadeddata', () => {
-    $("#videoPlayer")[0].play();
-    makePic();
+  document.querySelector('video').addEventListener('loadeddata', () => {
+    document.querySelector('video').play();
+    // makePic();
   });
 
-  $("#videoPlayer")[0].addEventListener('error', () => {
-    console.log('video_error')
+  document.querySelector('video').addEventListener('error', () => {
+    console.log('video error');
   });
 </script>

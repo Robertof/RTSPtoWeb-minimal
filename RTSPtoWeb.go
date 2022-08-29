@@ -15,7 +15,6 @@ func main() {
 		"func":   "main",
 	}).Info("Server CORE start")
 	go HTTPAPIServer()
-	go RTSPServer()
 	go Storage.StreamChannelRunAll()
 	signalChanel := make(chan os.Signal, 1)
 	done := make(chan bool, 1)

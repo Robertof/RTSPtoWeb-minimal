@@ -89,7 +89,7 @@ type StreamST struct {
 
 type ChannelST struct {
 	Name               string `json:"name,omitempty" groups:"api,config"`
-	URL                string `json:"url,omitempty" groups:"api,config"`
+	URL                string `json:"url,omitempty" groups:"config"`
 	OnDemand           bool   `json:"on_demand,omitempty" groups:"api,config"`
 	Debug              bool   `json:"debug,omitempty" groups:"api,config"`
 	Status             int    `json:"status,omitempty" groups:"api"`
@@ -99,11 +99,8 @@ type ChannelST struct {
 	codecs             []av.CodecData
 	sdp                []byte
 	signals            chan int
-	hlsSegmentBuffer   map[int]SegmentOld
-	hlsSegmentNumber   int
 	clients            map[string]ClientST
 	ack                time.Time
-	hlsMuxer           *MuxerHLS `json:"-"`
 }
 
 //ClientST client storage section
@@ -113,10 +110,4 @@ type ClientST struct {
 	outgoingAVPacket  chan *av.Packet
 	outgoingRTPPacket chan *[]byte
 	socket            net.Conn
-}
-
-//SegmentOld HLS cache section
-type SegmentOld struct {
-	dur  time.Duration
-	data []*av.Packet
 }
