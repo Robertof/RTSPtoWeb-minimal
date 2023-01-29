@@ -1,4 +1,4 @@
-{ stdenv }:
+{ stdenv, lib }:
 
 stdenv.mkDerivation rec {
   name = "rtsptoweb-minimal-${version}";
@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
     install -m755 -D rtsptoweb-minimal $out/bin/rtsptoweb-minimal
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Publishes RTSP streams to WebRTC";
     platforms = platforms.linux;
   };
