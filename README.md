@@ -1,7 +1,16 @@
-# RTSPtoWeb share you ip camera to world!
+# RTSPtoWeb-minimal
+
+This is a fork of [RTSPtoWeb](https://github.com/deepch/RTSPtoWeb) by @deepch which:
+
+- only enables WebRTC as a media provider
+- removes all write API access, exposing only the list of streams as `/streams` and the WebRTC
+  handshake endpoint
+- adds the ability to retrieve snapshots of cameras.
+
+## Original introduction
 
 RTSPtoWeb converts your RTSP streams to formats consumable in a web browser
-like MSE (Media Source Extensions), WebRTC, or HLS. It's fully native Golang
+like ~~MSE (Media Source Extensions),~~ WebRTC ~~, or HLS~~. It's fully native Golang
 without the use of FFmpeg or GStreamer!
 
 ## Table of Contents
@@ -35,27 +44,6 @@ without the use of FFmpeg or GStreamer!
     ```bash
     open web browser http://127.0.0.1:8083 work chrome, safari, firefox
     ```
-
-## Installation from docker
-
-1. Run docker container
-    ```bash
-    $ docker run --name rtsp-to-web --network host ghcr.io/deepch/rtsptoweb:latest 
-    ```
-1. Open Browser
-    ```bash
-    open web browser http://127.0.0.1:8083 in chrome, safari, firefox
-    ```
-
-You may override the <a href="#example-configjson">configuration</a> `/PATH_TO_CONFIG/config.json` and mount as a docker volume:
-
-```bash
-$ docker run --name rtsp-to-web \
-    -v /PATH_TO_CONFIG/config.json:/config/config.json \
-    --network host \
-    ghcr.io/deepch/rtsptoweb:latest 
-```
-
 ## Configuration
 
 ### Server settings
@@ -100,7 +88,46 @@ url             - channel rtsp url
 on_demand       - stream mode static (run any time) or ondemand (run only has viewers)
 debug           - enable debug output (RTSP client)
 audio           - enable audio
+snapshot        - image snapshots configuration
 status          - default stream status
+```
+
+### Snapshot settings
+
+```text
+url             - string, URL with credentials which returns a snapshot of the camera
+dial_timeout    - int, max amount of time to wait for a successful connection
+digest_auth     - object, enable digest auth (see 'Digest auth settings')
+modules         - array, enable ad-hoc functionality (see 'Snapshot modules')
+```
+
+### Snapshot modules
+
+```text
+hikvision_spoof_nonce_expiration
+
+By default, Hikvision NVRs have strict nonce reuse timeouts (in the order of seconds).
+This module exploits a quirk of some Hikvision NVRs where the nonce is in the form of
+`<hash>:<unix-ts>`, where the timestamp determines the maximum validity of the nonce.
+
+The timestamp is not cryptographically verified, so this module spoofs the timestamp
+setting it 1 year in the future. This module logs a warning if the nonce is in an unrecognized
+format.
+
+Only makes sense when digest authentication and `reuse_nonce` are enabled.
+This allows unlimited nonce reuses.
+```
+
+### Snapshot Digest Auth settings
+
+```text
+enabled             - bool, enable digest auth for the camera snapshot URL
+                      (URL must have credentials)
+reuse_nonce         - bool, enable RFC 7616 nonce reusing without requesting a challenge beforehand
+                      note that the authentication state is persisted *per-domain* (host),
+                      do not enable if you have a single domain that has different realms.
+nonce_reuse_timeout - int, max amount of time in seconds a nonce is deemed valid. defaults to 0
+                      (unlimited)
 ```
 
 #### Authorization play video

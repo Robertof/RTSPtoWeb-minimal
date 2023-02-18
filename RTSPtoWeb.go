@@ -10,6 +10,9 @@ import (
 )
 
 func main() {
+	Storage = NewStreamCore()
+	SetupLogging()
+
 	log.WithFields(logrus.Fields{
 		"module": "main",
 		"func":   "main",

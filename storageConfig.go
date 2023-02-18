@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"time"
 
@@ -61,6 +62,30 @@ func NewStreamCore() *StorageST {
 			channel.clients = make(map[string]ClientST)
 			channel.ack = time.Now().Add(-255 * time.Hour)
 			channel.signals = make(chan int, 100)
+
+			snapshotCfg := &channel.Snapshot
+			if snapshotCfg.URL != "" {
+				snapshotCfg.client = &http.Client{
+					Transport: snapshotCfg.Transport(),
+				}
+
+				if snapshotCfg.DigestAuth.Enabled {
+					requestor := NewDigestAuthRequestor(snapshotCfg.client)
+
+					if snapshotCfg.DigestAuth.AllowNonceReuse {
+						if snapshotCfg.DigestAuth.NonceReuseTimeout != 0 {
+							requestor.NonceReusePolicy = DigestAuthNonceReuseWithinTimeout(snapshotCfg.DigestAuth.NonceReuseTimeout)
+						} else {
+							requestor.NonceReusePolicy = DigestAuthNonceReuseAlways
+						}
+					}
+
+					snapshotCfg.DigestAuth.requestor = requestor
+				}
+
+				snapshotCfg.LoadModules()
+			}
+
 			i2.Channels[i3] = channel
 		}
 		tmp.Streams[i] = i2

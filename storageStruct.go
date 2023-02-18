@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net"
+	"net/http"
 	"sync"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var Storage = NewStreamCore()
+var Storage *StorageST
 
 //Default stream  type
 const (
@@ -39,6 +40,7 @@ var (
 	ErrorStreamStopRTSPSignal       = errors.New("stream stop rtsp signal")
 	ErrorStreamChannelNotFound      = errors.New("stream channel not found")
 	ErrorStreamChannelCodecNotFound = errors.New("stream channel codec not ready, possible stream offline")
+	ErrorStreamChannelSnapshotDisabled = errors.New("stream channel does not support snapshots")
 	ErrorStreamsLen0                = errors.New("streams len zero")
 )
 
@@ -87,14 +89,32 @@ type StreamST struct {
 	Channels map[string]ChannelST `json:"channels,omitempty" groups:"api,config"`
 }
 
+type DigestAuthST struct {
+	Enabled bool `json:"enabled,omitempty" groups:"config"`
+	AllowNonceReuse bool `json:"reuse_nonce,omitempty" groups:"config"`
+	NonceReuseTimeout int `json:"nonce_reuse_timeout,omitempty" groups:"config"`
+
+	requestor *DigestAuthRequestor
+}
+
+type SnapshotST struct {
+	URL string `json:"url,omitempty" groups:"config"`
+	DialTimeout uint `json:"dial_timeout,omitempty" groups:"config"`
+	DigestAuth DigestAuthST `json:"digest_auth,omitempty" groups:"config"`
+	Modules []string `json:"modules" groups:"config"`
+
+	client *http.Client
+}
+
 type ChannelST struct {
-	Name               string `json:"name,omitempty" groups:"api,config"`
-	URL                string `json:"url,omitempty" groups:"config"`
-	OnDemand           bool   `json:"on_demand,omitempty" groups:"api,config"`
-	Debug              bool   `json:"debug,omitempty" groups:"api,config"`
-	Status             int    `json:"status,omitempty" groups:"api"`
-	InsecureSkipVerify bool   `json:"insecure_skip_verify,omitempty" groups:"api,config"`
-	Audio              bool   `json:"audio,omitempty" groups:"api,config"`
+	Name               string      `json:"name,omitempty" groups:"api,config"`
+	URL                string      `json:"url,omitempty" groups:"config"`
+	OnDemand           bool        `json:"on_demand,omitempty" groups:"api,config"`
+	Debug              bool        `json:"debug,omitempty" groups:"api,config"`
+	Status             int         `json:"status,omitempty" groups:"api"`
+	InsecureSkipVerify bool        `json:"insecure_skip_verify,omitempty" groups:"api,config"`
+	Audio              bool        `json:"audio,omitempty" groups:"api,config"`
+	Snapshot           SnapshotST  `json:"snapshot,omitempty" groups:"config"`
 	runLock            bool
 	codecs             []av.CodecData
 	sdp                []byte

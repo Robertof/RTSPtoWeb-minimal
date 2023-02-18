@@ -8,7 +8,7 @@ import (
 
 var log = logrus.New()
 
-func init() {
+func SetupLogging() {
 	//TODO: next add write to file
 	if !debug {
 		log.SetOutput(ioutil.Discard)

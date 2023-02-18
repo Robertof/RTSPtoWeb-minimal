@@ -39,6 +39,7 @@ func HTTPAPIServer() {
 	}
 
 	privat.GET("/streams", HTTPAPIServerStreams)
+	public.GET("/stream/:uuid/channel/:channel/snapshot", HTTPAPIServerProduceSnapshot)
 	public.POST("/stream/:uuid/channel/:channel/webrtc", HTTPAPIServerStreamWebRTC)
 
 	/*
