@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -82,6 +83,7 @@ func (r *DigestAuthRequestor) retrieveChallenge(c context.Context, uri *url.URL)
 		return "", res, nil
 	}
 
+	io.Copy(io.Discard, res.Body)
 	res.Body.Close()
 
 	challenge, err := challengeFromResponse(res)

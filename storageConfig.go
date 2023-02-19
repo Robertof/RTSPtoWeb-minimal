@@ -47,6 +47,8 @@ func NewStreamCore() *StorageST {
 		os.Exit(1)
 	}
 	debug = tmp.Server.Debug
+
+
 	for i, i2 := range tmp.Streams {
 		for i3, i4 := range i2.Channels {
 			channel := tmp.ChannelDefaults
@@ -66,7 +68,7 @@ func NewStreamCore() *StorageST {
 			snapshotCfg := &channel.Snapshot
 			if snapshotCfg.URL != "" {
 				snapshotCfg.client = &http.Client{
-					Transport: snapshotCfg.Transport(),
+					Transport: HttpTransportWithTimeout(snapshotCfg.DialTimeout),
 				}
 
 				if snapshotCfg.DigestAuth.Enabled {

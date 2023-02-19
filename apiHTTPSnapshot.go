@@ -22,17 +22,29 @@ const (
 	oneYear = time.Hour * 24 * 365 * 10
 )
 var isAllDigitsRe = regexp.MustCompile("^[0-9]+$")
+var httpTransportsByTimeout = make(map[uint]http.RoundTripper)
 
-func (s *SnapshotST) Transport() http.RoundTripper {
-	if s.DialTimeout != 0 {
-		return &http.Transport{
-			Dial: func(network, addr string) (net.Conn, error) {
-				return net.DialTimeout(network, addr, time.Duration(s.DialTimeout) * time.Second)
+func HttpTransportWithTimeout(timeout uint) http.RoundTripper {
+	if timeout > 0 {
+		if transport, ok := httpTransportsByTimeout[timeout]; ok {
+			return transport
+		}
+
+		dialer := &net.Dialer{
+			Timeout: time.Duration(timeout) * time.Second,
+		}
+
+		transport := &http.Transport{
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return dialer.DialContext(ctx, network, addr)
 			},
 		}
-	} else {
-		return http.DefaultTransport
+
+		httpTransportsByTimeout[timeout] = transport
+		return transport
 	}
+
+	return http.DefaultTransport
 }
 
 func (s *SnapshotST) LoadModules() {
