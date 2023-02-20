@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/autotls"
 	"github.com/gin-gonic/gin"
-	"github.com/liip/sheriff"
 	"github.com/sirupsen/logrus"
 )
 
@@ -90,9 +89,7 @@ func HTTPAPIServer() {
 
 //HTTPAPIServerStreams function return stream list
 func HTTPAPIServerStreams(c *gin.Context) {
-	data, err := sheriff.Marshal(&sheriff.Options{
-		Groups: []string{"api"},
-	}, Storage.StreamsList())
+	data, err := Storage.MarshalledStreamsList()
 
 	if err != nil {
 		c.AbortWithError(500, err)
